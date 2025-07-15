@@ -1,0 +1,675 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		242DDAAB2E25956300D535E6 /* Plunge Timer Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 242DDAAA2E25956300D535E6 /* Plunge Timer Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		242DDAAC2E25956300D535E6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 242DDA9E2E25956300D535E6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 242DDAA92E25956300D535E6;
+			remoteInfo = "Plunge Timer Watch App";
+		};
+		242DDABA2E25956500D535E6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 242DDA9E2E25956300D535E6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 242DDAA92E25956300D535E6;
+			remoteInfo = "Plunge Timer Watch App";
+		};
+		242DDAC42E25956500D535E6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 242DDA9E2E25956300D535E6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 242DDAA92E25956300D535E6;
+			remoteInfo = "Plunge Timer Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		242DDAD02E25956500D535E6 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				242DDAAB2E25956300D535E6 /* Plunge Timer Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		242DDAA42E25956300D535E6 /* Plunge Timer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Plunge Timer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		242DDAAA2E25956300D535E6 /* Plunge Timer Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Plunge Timer Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		242DDAB92E25956500D535E6 /* Plunge Timer Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Plunge Timer Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		242DDAC32E25956500D535E6 /* Plunge Timer Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Plunge Timer Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		242DDAAE2E25956300D535E6 /* Plunge Timer Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Plunge Timer Watch App";
+			sourceTree = "<group>";
+		};
+		242DDABC2E25956500D535E6 /* Plunge Timer Watch AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Plunge Timer Watch AppTests";
+			sourceTree = "<group>";
+		};
+		242DDAC62E25956500D535E6 /* Plunge Timer Watch AppUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Plunge Timer Watch AppUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		242DDAA72E25956300D535E6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		242DDAB62E25956500D535E6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		242DDAC02E25956500D535E6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		242DDA9D2E25956300D535E6 = {
+			isa = PBXGroup;
+			children = (
+				242DDAAE2E25956300D535E6 /* Plunge Timer Watch App */,
+				242DDABC2E25956500D535E6 /* Plunge Timer Watch AppTests */,
+				242DDAC62E25956500D535E6 /* Plunge Timer Watch AppUITests */,
+				242DDAA52E25956300D535E6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		242DDAA52E25956300D535E6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				242DDAA42E25956300D535E6 /* Plunge Timer.app */,
+				242DDAAA2E25956300D535E6 /* Plunge Timer Watch App.app */,
+				242DDAB92E25956500D535E6 /* Plunge Timer Watch AppTests.xctest */,
+				242DDAC32E25956500D535E6 /* Plunge Timer Watch AppUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		242DDAA32E25956300D535E6 /* Plunge Timer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 242DDAD12E25956500D535E6 /* Build configuration list for PBXNativeTarget "Plunge Timer" */;
+			buildPhases = (
+				242DDAA22E25956300D535E6 /* Resources */,
+				242DDAD02E25956500D535E6 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				242DDAAD2E25956300D535E6 /* PBXTargetDependency */,
+			);
+			name = "Plunge Timer";
+			packageProductDependencies = (
+			);
+			productName = "Plunge Timer";
+			productReference = 242DDAA42E25956300D535E6 /* Plunge Timer.app */;
+			productType = "com.apple.product-type.application.watchapp2-container";
+		};
+		242DDAA92E25956300D535E6 /* Plunge Timer Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 242DDACD2E25956500D535E6 /* Build configuration list for PBXNativeTarget "Plunge Timer Watch App" */;
+			buildPhases = (
+				242DDAA62E25956300D535E6 /* Sources */,
+				242DDAA72E25956300D535E6 /* Frameworks */,
+				242DDAA82E25956300D535E6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				242DDAAE2E25956300D535E6 /* Plunge Timer Watch App */,
+			);
+			name = "Plunge Timer Watch App";
+			packageProductDependencies = (
+			);
+			productName = "Plunge Timer Watch App";
+			productReference = 242DDAAA2E25956300D535E6 /* Plunge Timer Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		242DDAB82E25956500D535E6 /* Plunge Timer Watch AppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 242DDAD42E25956500D535E6 /* Build configuration list for PBXNativeTarget "Plunge Timer Watch AppTests" */;
+			buildPhases = (
+				242DDAB52E25956500D535E6 /* Sources */,
+				242DDAB62E25956500D535E6 /* Frameworks */,
+				242DDAB72E25956500D535E6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				242DDABB2E25956500D535E6 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				242DDABC2E25956500D535E6 /* Plunge Timer Watch AppTests */,
+			);
+			name = "Plunge Timer Watch AppTests";
+			packageProductDependencies = (
+			);
+			productName = "Plunge Timer Watch AppTests";
+			productReference = 242DDAB92E25956500D535E6 /* Plunge Timer Watch AppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		242DDAC22E25956500D535E6 /* Plunge Timer Watch AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 242DDAD72E25956500D535E6 /* Build configuration list for PBXNativeTarget "Plunge Timer Watch AppUITests" */;
+			buildPhases = (
+				242DDABF2E25956500D535E6 /* Sources */,
+				242DDAC02E25956500D535E6 /* Frameworks */,
+				242DDAC12E25956500D535E6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				242DDAC52E25956500D535E6 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				242DDAC62E25956500D535E6 /* Plunge Timer Watch AppUITests */,
+			);
+			name = "Plunge Timer Watch AppUITests";
+			packageProductDependencies = (
+			);
+			productName = "Plunge Timer Watch AppUITests";
+			productReference = 242DDAC32E25956500D535E6 /* Plunge Timer Watch AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		242DDA9E2E25956300D535E6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					242DDAA32E25956300D535E6 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					242DDAA92E25956300D535E6 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					242DDAB82E25956500D535E6 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 242DDAA92E25956300D535E6;
+					};
+					242DDAC22E25956500D535E6 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 242DDAA92E25956300D535E6;
+					};
+				};
+			};
+			buildConfigurationList = 242DDAA12E25956300D535E6 /* Build configuration list for PBXProject "Plunge Timer" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 242DDA9D2E25956300D535E6;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 242DDAA52E25956300D535E6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				242DDAA32E25956300D535E6 /* Plunge Timer */,
+				242DDAA92E25956300D535E6 /* Plunge Timer Watch App */,
+				242DDAB82E25956500D535E6 /* Plunge Timer Watch AppTests */,
+				242DDAC22E25956500D535E6 /* Plunge Timer Watch AppUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		242DDAA22E25956300D535E6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		242DDAA82E25956300D535E6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		242DDAB72E25956500D535E6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		242DDAC12E25956500D535E6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		242DDAA62E25956300D535E6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		242DDAB52E25956500D535E6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		242DDABF2E25956500D535E6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		242DDAAD2E25956300D535E6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 242DDAA92E25956300D535E6 /* Plunge Timer Watch App */;
+			targetProxy = 242DDAAC2E25956300D535E6 /* PBXContainerItemProxy */;
+		};
+		242DDABB2E25956500D535E6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 242DDAA92E25956300D535E6 /* Plunge Timer Watch App */;
+			targetProxy = 242DDABA2E25956500D535E6 /* PBXContainerItemProxy */;
+		};
+		242DDAC52E25956500D535E6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 242DDAA92E25956300D535E6 /* Plunge Timer Watch App */;
+			targetProxy = 242DDAC42E25956500D535E6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		242DDACB2E25956500D535E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		242DDACC2E25956500D535E6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		242DDACE2E25956500D535E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Plunge Timer Watch App/Plunge Timer Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Plunge Timer";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app uses HealthKit to track your cold plunge workout sessions and provide automatic timer activation when water is detected.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app uses HealthKit to record your cold plunge workout sessions for health tracking purposes.";
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tomwentworth.Plunge-Timer.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Debug;
+		};
+		242DDACF2E25956500D535E6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Plunge Timer Watch App/Plunge Timer Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Plunge Timer";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app uses HealthKit to track your cold plunge workout sessions and provide automatic timer activation when water is detected.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app uses HealthKit to record your cold plunge workout sessions for health tracking purposes.";
+				INFOPLIST_KEY_WKWatchOnly = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tomwentworth.Plunge-Timer.watchkitapp";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Release;
+		};
+		242DDAD22E25956500D535E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				INFOPLIST_KEY_CFBundleDisplayName = "Plunge Timer";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tomwentworth.Plunge-Timer";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		242DDAD32E25956500D535E6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				INFOPLIST_KEY_CFBundleDisplayName = "Plunge Timer";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tomwentworth.Plunge-Timer";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		242DDAD52E25956500D535E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tomwentworth.Plunge-Timer-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Plunge Timer Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Plunge Timer Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Debug;
+		};
+		242DDAD62E25956500D535E6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tomwentworth.Plunge-Timer-Watch-AppTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Plunge Timer Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Plunge Timer Watch App";
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Release;
+		};
+		242DDAD82E25956500D535E6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tomwentworth.Plunge-Timer-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "Plunge Timer Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Debug;
+		};
+		242DDAD92E25956500D535E6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4FV4P73BFT;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tomwentworth.Plunge-Timer-Watch-AppUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "Plunge Timer Watch App";
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.5;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		242DDAA12E25956300D535E6 /* Build configuration list for PBXProject "Plunge Timer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				242DDACB2E25956500D535E6 /* Debug */,
+				242DDACC2E25956500D535E6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		242DDACD2E25956500D535E6 /* Build configuration list for PBXNativeTarget "Plunge Timer Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				242DDACE2E25956500D535E6 /* Debug */,
+				242DDACF2E25956500D535E6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		242DDAD12E25956500D535E6 /* Build configuration list for PBXNativeTarget "Plunge Timer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				242DDAD22E25956500D535E6 /* Debug */,
+				242DDAD32E25956500D535E6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		242DDAD42E25956500D535E6 /* Build configuration list for PBXNativeTarget "Plunge Timer Watch AppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				242DDAD52E25956500D535E6 /* Debug */,
+				242DDAD62E25956500D535E6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		242DDAD72E25956500D535E6 /* Build configuration list for PBXNativeTarget "Plunge Timer Watch AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				242DDAD82E25956500D535E6 /* Debug */,
+				242DDAD92E25956500D535E6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 242DDA9E2E25956300D535E6 /* Project object */;
+}
