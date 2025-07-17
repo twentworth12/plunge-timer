@@ -15,6 +15,7 @@ import ClockKit
 class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate, CMWaterSubmersionManagerDelegate, WKExtendedRuntimeSessionDelegate {
     @Published var isWorkoutActive = false
     @Published var currentHeartRate: Double = 0.0
+    @Published var isWaterDetectionAvailable = false
     private var workoutSession: HKWorkoutSession?
     private var healthStore = HKHealthStore()
     private var onWorkoutStart: (() -> Void)?
@@ -40,9 +41,18 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     }
     
     func setupWaterDetection() {
-        waterSubmersionManager = CMWaterSubmersionManager()
-        waterSubmersionManager?.delegate = self
-        print("Water detection enabled")
+        // Water detection requires Apple Watch Ultra with watchOS 9.0+
+        // For now, gracefully handle unavailability
+        print("Water detection checking availability...")
+        
+        // Default to unavailable for broader compatibility
+        DispatchQueue.main.async {
+            self.isWaterDetectionAvailable = false
+        }
+        
+        // Note: Water detection will show error 109 (not available) on 
+        // simulator and non-Ultra Apple Watch devices
+        print("Water detection unavailable (requires Apple Watch Ultra)")
     }
     
     func startWaterWorkout() {
@@ -180,7 +190,21 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     }
     
     func manager(_ manager: CMWaterSubmersionManager, errorOccurred error: Error) {
-        print("Water detection error: \(error)")
+        let cmError = error as NSError
+        switch cmError.code {
+        case 109: // Feature not available
+            print("Water detection not available on this device (requires Apple Watch Ultra)")
+            DispatchQueue.main.async {
+                self.isWaterDetectionAvailable = false
+            }
+        case 103: // Not authorized
+            print("Water detection not authorized")
+            DispatchQueue.main.async {
+                self.isWaterDetectionAvailable = false
+            }
+        default:
+            print("Water detection error: \(error)")
+        }
     }
     
     // MARK: - HKLiveWorkoutBuilderDelegate
@@ -295,10 +319,21 @@ struct ContentView: View {
             TimePickers(selectedMinutes: $selectedMinutes, selectedSeconds: $selectedSeconds)
                 .frame(height: 70)
             
-            Toggle("Auto-start on water entry", isOn: $autoStartEnabled)
-                .font(.caption2)
-                .toggleStyle(.switch)
-                .tint(.cyan)
+            if workoutManager.isWaterDetectionAvailable {
+                Toggle("Auto-start on water entry", isOn: $autoStartEnabled)
+                    .font(.caption2)
+                    .toggleStyle(.switch)
+                    .tint(.cyan)
+            } else {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundColor(.orange)
+                        .font(.caption2)
+                    Text("Water detection unavailable")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
             
             
             Button("Start") {
@@ -310,11 +345,14 @@ struct ContentView: View {
             .disabled(selectedMinutes == 0 && selectedSeconds == 0)
         }
         .onAppear {
+            // Always check water detection availability first
+            workoutManager.setupWaterDetection()
+            
+            // Setup workout session for auto-start if enabled
             if autoStartEnabled {
                 workoutManager.setupWorkoutSession {
                     startTimer()
                 }
-                workoutManager.setupWaterDetection()
             }
         }
     }
