@@ -48,6 +48,7 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
         let configuration = HKWorkoutConfiguration()
         configuration.activityType = .swimming
         configuration.locationType = .outdoor
+        configuration.swimmingLocationType = .openWater
         
         do {
             workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
