@@ -461,6 +461,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Plunge Timer";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app uses HealthKit to track your cold plunge workout sessions and provide automatic timer activation when water is detected.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app uses HealthKit to record your cold plunge workout sessions for health tracking purposes.";
+				INFOPLIST_KEY_NSSiriUsageDescription = "This app uses Siri to let you quickly start cold plunge timer sessions with voice commands like \"Start my cold plunge\".";
 				INFOPLIST_KEY_WKWatchOnly = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -492,6 +493,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Plunge Timer";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app uses HealthKit to track your cold plunge workout sessions and provide automatic timer activation when water is detected.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app uses HealthKit to record your cold plunge workout sessions for health tracking purposes.";
+				INFOPLIST_KEY_NSSiriUsageDescription = "This app uses Siri to let you quickly start cold plunge timer sessions with voice commands like \"Start my cold plunge\".";
 				INFOPLIST_KEY_WKWatchOnly = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
