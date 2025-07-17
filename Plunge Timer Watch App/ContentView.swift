@@ -12,7 +12,7 @@ import CoreMotion
 import Intents
 import ClockKit
 
-class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate, CMWaterSubmersionManagerDelegate {
+class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate, CMWaterSubmersionManagerDelegate, WKExtendedRuntimeSessionDelegate {
     @Published var isWorkoutActive = false
     @Published var currentHeartRate: Double = 0.0
     private var workoutSession: HKWorkoutSession?
@@ -21,6 +21,7 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     private var waterSubmersionManager: CMWaterSubmersionManager?
     private var builder: HKLiveWorkoutBuilder?
     private var startTime: Date?
+    private var extendedRuntimeSession: WKExtendedRuntimeSession?
     
     func setupWorkoutSession(onStart: @escaping () -> Void) {
         self.onWorkoutStart = onStart
@@ -45,6 +46,9 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     }
     
     func startWaterWorkout() {
+        // Start extended runtime session first
+        startExtendedRuntimeSession()
+        
         let configuration = HKWorkoutConfiguration()
         configuration.activityType = .swimming
         configuration.locationType = .outdoor
@@ -74,6 +78,19 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
         }
     }
     
+    private func startExtendedRuntimeSession() {
+        extendedRuntimeSession = WKExtendedRuntimeSession()
+        extendedRuntimeSession?.delegate = self
+        extendedRuntimeSession?.start()
+        print("Extended runtime session started")
+    }
+    
+    private func stopExtendedRuntimeSession() {
+        extendedRuntimeSession?.invalidate()
+        extendedRuntimeSession = nil
+        print("Extended runtime session stopped")
+    }
+    
     func endWorkout() {
         guard let startTime = startTime else { return }
         let endTime = Date()
@@ -99,6 +116,9 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
         builder = nil
         isWorkoutActive = false
         self.startTime = nil
+        
+        // Stop extended runtime session
+        stopExtendedRuntimeSession()
         
         // Reset heart rate
         DispatchQueue.main.async {
@@ -181,6 +201,23 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     
     func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
         // Handle workout events
+    }
+    
+    // MARK: - WKExtendedRuntimeSessionDelegate
+    func extendedRuntimeSessionDidStart(_ extendedRuntimeSession: WKExtendedRuntimeSession) {
+        print("Extended runtime session started successfully")
+    }
+    
+    func extendedRuntimeSessionWillExpire(_ extendedRuntimeSession: WKExtendedRuntimeSession) {
+        print("Extended runtime session will expire")
+        // Optionally extend the session or handle expiration
+    }
+    
+    func extendedRuntimeSession(_ extendedRuntimeSession: WKExtendedRuntimeSession, didInvalidateWith reason: WKExtendedRuntimeSessionInvalidationReason, error: Error?) {
+        print("Extended runtime session invalidated with reason: \(reason)")
+        if let error = error {
+            print("Extended runtime session error: \(error.localizedDescription)")
+        }
     }
 }
 
