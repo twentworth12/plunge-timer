@@ -225,18 +225,8 @@ struct ContentView: View {
     @State private var autoStartEnabled = true
     @State private var crownValue: Double = 0.0
     @FocusState private var isCrownFocused: Bool
-    @State private var breathingEnabled = true
-    @State private var breathingTimer: Timer?
-    @State private var breathingPhase: BreathingPhase = .inhale
-    @State private var breathingCounter: Int = 0
     @StateObject private var workoutManager = WorkoutManager()
     
-    enum BreathingPhase: String, CaseIterable {
-        case inhale = "Inhale"
-        case hold = "Hold"
-        case exhale = "Exhale"
-        case pause = "Pause"
-    }
     
     var body: some View {
         NavigationView {
@@ -273,10 +263,6 @@ struct ContentView: View {
                 .toggleStyle(.switch)
                 .tint(.cyan)
             
-            Toggle("Breathing guidance", isOn: $breathingEnabled)
-                .font(.caption2)
-                .toggleStyle(.switch)
-                .tint(.green)
             
             Button("Start") {
                 startTimer()
@@ -310,13 +296,6 @@ struct ContentView: View {
                         .opacity(0.8)
                 }
                 
-                if breathingEnabled && isTimerRunning {
-                    Text("🫁 \(breathingPhase.rawValue)")
-                        .font(.caption2)
-                        .foregroundColor(.green)
-                        .fontWeight(.medium)
-                        .animation(.easeInOut(duration: 0.5), value: breathingPhase)
-                }
                 
                 if isTimerRunning && workoutManager.currentHeartRate > 0 {
                     Text("❤️ \(Int(workoutManager.currentHeartRate)) BPM")
@@ -441,17 +420,13 @@ struct ContentView: View {
         if #available(iOS 12.0, watchOS 5.0, *) {
             ShortcutsProvider.shared.donateQuickStartActivity(
                 duration: totalTime,
-                breathingEnabled: breathingEnabled
+                breathingEnabled: false
             )
         }
         
         // Start workout session to keep app active
         workoutManager.startWaterWorkout()
         
-        // Start breathing guidance if enabled
-        if breathingEnabled {
-            startBreathingGuidance()
-        }
         
         // Keep screen awake during timer
         WKInterfaceDevice.current().enableWaterLock()
@@ -474,8 +449,6 @@ struct ContentView: View {
         // Update crown value to current time for adjustment
         crownValue = Double(timeRemaining)
         
-        // Pause breathing guidance
-        stopBreathingGuidance()
     }
     
     private func resumeTimer() {
@@ -483,10 +456,6 @@ struct ContentView: View {
         
         isTimerRunning = true
         
-        // Resume breathing guidance if enabled
-        if breathingEnabled {
-            startBreathingGuidance()
-        }
         
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if timeRemaining > 0 {
@@ -508,9 +477,6 @@ struct ContentView: View {
         progress = 0.0
         timeRemaining = 0
         crownValue = 0.0
-        
-        // Stop breathing guidance
-        stopBreathingGuidance()
     }
     
     private func adjustTimerWithCrown(_ newValue: Double) {
@@ -539,13 +505,11 @@ struct ContentView: View {
     // MARK: - Siri Shortcuts
     private func handleSiriShortcut(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
-              let duration = userInfo["duration"] as? Int,
-              let enableBreathing = userInfo["enableBreathing"] as? Bool else { return }
+              let duration = userInfo["duration"] as? Int else { return }
         
         // Set timer values from Siri command
         selectedMinutes = duration / 60
         selectedSeconds = duration % 60
-        breathingEnabled = enableBreathing
         
         // Start the timer automatically
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -558,9 +522,6 @@ struct ContentView: View {
         timer = nil
         isTimerRunning = false
         progress = 1.0
-        
-        // Stop breathing guidance
-        stopBreathingGuidance()
         
         // End workout session if running
         workoutManager.endWorkout()
@@ -586,52 +547,6 @@ struct ContentView: View {
         return String(format: "%d:%02d", minutes, remainingSeconds)
     }
     
-    // MARK: - Breathing Guidance
-    private func startBreathingGuidance() {
-        breathingPhase = .inhale
-        breathingCounter = 0
-        breathingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            advanceBreathingPhase()
-        }
-    }
-    
-    private func stopBreathingGuidance() {
-        breathingTimer?.invalidate()
-        breathingTimer = nil
-        breathingCounter = 0
-    }
-    
-    private func advanceBreathingPhase() {
-        breathingCounter += 1
-        
-        // 4-7-8 breathing pattern: Inhale 4s, Hold 7s, Exhale 8s, Pause 2s
-        switch breathingPhase {
-        case .inhale:
-            if breathingCounter >= 4 {
-                breathingPhase = .hold
-                breathingCounter = 0
-                WKInterfaceDevice.current().play(.directionUp)
-            }
-        case .hold:
-            if breathingCounter >= 7 {
-                breathingPhase = .exhale
-                breathingCounter = 0
-                WKInterfaceDevice.current().play(.directionDown)
-            }
-        case .exhale:
-            if breathingCounter >= 8 {
-                breathingPhase = .pause
-                breathingCounter = 0
-                WKInterfaceDevice.current().play(.click)
-            }
-        case .pause:
-            if breathingCounter >= 2 {
-                breathingPhase = .inhale
-                breathingCounter = 0
-                WKInterfaceDevice.current().play(.start)
-            }
-        }
-    }
 }
 
 #Preview {
