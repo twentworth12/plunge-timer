@@ -227,6 +227,7 @@ struct ContentView: View {
     @State private var breathingEnabled = true
     @State private var breathingTimer: Timer?
     @State private var breathingPhase: BreathingPhase = .inhale
+    @State private var breathingCounter: Int = 0
     @StateObject private var workoutManager = WorkoutManager()
     
     enum BreathingPhase: String, CaseIterable {
@@ -345,11 +346,13 @@ struct ContentView: View {
                         .animation(.easeInOut(duration: 0.3), value: isCrownFocused)
                 }
                 
-                VStack(spacing: 2) {
+                VStack(spacing: 1) {
                     Text(timeString(from: timeRemaining))
-                        .font(.title3)
+                        .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
                     
                     Text("left")
                         .font(.caption2)
@@ -587,6 +590,7 @@ struct ContentView: View {
     // MARK: - Breathing Guidance
     private func startBreathingGuidance() {
         breathingPhase = .inhale
+        breathingCounter = 0
         breathingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             advanceBreathingPhase()
         }
@@ -595,23 +599,38 @@ struct ContentView: View {
     private func stopBreathingGuidance() {
         breathingTimer?.invalidate()
         breathingTimer = nil
+        breathingCounter = 0
     }
     
     private func advanceBreathingPhase() {
-        let currentIndex = BreathingPhase.allCases.firstIndex(of: breathingPhase) ?? 0
-        let nextIndex = (currentIndex + 1) % BreathingPhase.allCases.count
-        breathingPhase = BreathingPhase.allCases[nextIndex]
+        breathingCounter += 1
         
-        // Generate haptic feedback based on breathing phase
+        // 4-7-8 breathing pattern: Inhale 4s, Hold 7s, Exhale 8s, Pause 2s
         switch breathingPhase {
         case .inhale:
-            WKInterfaceDevice.current().play(.start)
+            if breathingCounter >= 4 {
+                breathingPhase = .hold
+                breathingCounter = 0
+                WKInterfaceDevice.current().play(.directionUp)
+            }
         case .hold:
-            WKInterfaceDevice.current().play(.directionUp)
+            if breathingCounter >= 7 {
+                breathingPhase = .exhale
+                breathingCounter = 0
+                WKInterfaceDevice.current().play(.directionDown)
+            }
         case .exhale:
-            WKInterfaceDevice.current().play(.directionDown)
+            if breathingCounter >= 8 {
+                breathingPhase = .pause
+                breathingCounter = 0
+                WKInterfaceDevice.current().play(.click)
+            }
         case .pause:
-            WKInterfaceDevice.current().play(.click)
+            if breathingCounter >= 2 {
+                breathingPhase = .inhale
+                breathingCounter = 0
+                WKInterfaceDevice.current().play(.start)
+            }
         }
     }
 }
