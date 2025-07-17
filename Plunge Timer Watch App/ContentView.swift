@@ -56,7 +56,7 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     }
     
     func startWaterWorkout() {
-        // Start extended runtime session first
+        // Start extended runtime session first (may not work in simulator)
         startExtendedRuntimeSession()
         
         let configuration = HKWorkoutConfiguration()
@@ -65,6 +65,7 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
         configuration.swimmingLocationType = .openWater
         
         do {
+            // HKWorkoutSession provides background execution even if extended runtime fails
             workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
             workoutSession?.delegate = self
             
@@ -76,29 +77,49 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
             workoutSession?.startActivity(with: startTime!)
             builder?.beginCollection(withStart: startTime!) { success, error in
                 if success {
-                    print("Workout data collection started")
+                    print("✅ Workout data collection started")
                 } else {
-                    print("Failed to start workout data collection: \(error?.localizedDescription ?? "Unknown error")")
+                    print("❌ Failed to start workout data collection: \(error?.localizedDescription ?? "Unknown error")")
                 }
             }
             
             isWorkoutActive = true
+            print("🏊‍♂️ Swimming workout session active")
         } catch {
-            print("Failed to start workout session: \(error)")
+            print("❌ Failed to start workout session: \(error)")
         }
     }
     
     private func startExtendedRuntimeSession() {
+        // Don't start if we already have an active session
+        guard extendedRuntimeSession == nil else {
+            print("⚠️ Extended runtime session already exists")
+            return
+        }
+        
+        // Extended runtime sessions may not be available in simulator or development builds
         extendedRuntimeSession = WKExtendedRuntimeSession()
         extendedRuntimeSession?.delegate = self
-        extendedRuntimeSession?.start()
-        print("Extended runtime session start requested")
+        
+        // Check if session is in a valid state before starting
+        if let session = extendedRuntimeSession {
+            print("🔄 Attempting to start extended runtime session...")
+            session.start()
+        } else {
+            print("❌ Failed to create extended runtime session")
+        }
     }
     
     private func stopExtendedRuntimeSession() {
-        extendedRuntimeSession?.invalidate()
+        guard let session = extendedRuntimeSession else {
+            print("ℹ️ No extended runtime session to stop")
+            return
+        }
+        
+        print("🛑 Stopping extended runtime session...")
+        session.invalidate()
         extendedRuntimeSession = nil
-        print("Extended runtime session stopped")
+        print("✅ Extended runtime session stopped")
     }
     
     func endWorkout() {
@@ -229,19 +250,31 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     
     // MARK: - WKExtendedRuntimeSessionDelegate
     func extendedRuntimeSessionDidStart(_ extendedRuntimeSession: WKExtendedRuntimeSession) {
-        print("Extended runtime session started successfully")
+        print("✅ Extended runtime session started successfully")
     }
     
     func extendedRuntimeSessionWillExpire(_ extendedRuntimeSession: WKExtendedRuntimeSession) {
-        print("Extended runtime session will expire")
+        print("⏰ Extended runtime session will expire")
         // Optionally extend the session or handle expiration
     }
     
     func extendedRuntimeSession(_ extendedRuntimeSession: WKExtendedRuntimeSession, didInvalidateWith reason: WKExtendedRuntimeSessionInvalidationReason, error: Error?) {
-        print("Extended runtime session invalidated with reason: \(reason.rawValue)")
+        // Clear our reference since the session is now invalid
+        self.extendedRuntimeSession = nil
+        
         if let error = error {
-            print("Extended runtime session error: \(error.localizedDescription)")
+            let nsError = error as NSError
+            switch nsError.code {
+            case 8: // "client not approved"
+                print("⚠️ Extended runtime session not approved (normal in simulator/development)")
+            default:
+                print("❌ Extended runtime session error: \(error.localizedDescription)")
+            }
+        } else {
+            print("ℹ️ Extended runtime session ended normally (reason: \(reason.rawValue))")
         }
+        
+        print("🏊‍♂️ Relying on HealthKit workout session for background execution")
     }
 }
 
@@ -364,7 +397,7 @@ struct ContentView: View {
                     .font(.caption)
                     .foregroundColor(.cyan)
                 
-                if isCrownFocused {
+                if isCrownFocused && !isTimerRunning {
                     Text("👑 Adjust with Digital Crown")
                         .font(.caption2)
                         .foregroundColor(.orange)
@@ -392,8 +425,8 @@ struct ContentView: View {
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 1), value: progress)
                 
-                // Crown focus indicator
-                if isCrownFocused {
+                // Crown focus indicator (only when paused)
+                if isCrownFocused && !isTimerRunning {
                     Circle()
                         .stroke(Color.orange.opacity(0.3), lineWidth: 2)
                         .frame(width: 110, height: 110)
@@ -415,9 +448,21 @@ struct ContentView: View {
                 }
             }
             .focused($isCrownFocused)
-            .digitalCrownRotation($crownValue, from: 0, through: 600, by: 5, sensitivity: .medium, isContinuous: false, isHapticFeedbackEnabled: true)
+            .digitalCrownRotation(
+                $crownValue, 
+                from: 0, 
+                through: 600, 
+                by: 5, 
+                sensitivity: .medium, 
+                isContinuous: false, 
+                isHapticFeedbackEnabled: true
+            )
+            .disabled(isTimerRunning) // Disable crown during timer
             .onChange(of: crownValue) { oldValue, newValue in
-                adjustTimerWithCrown(newValue)
+                // Only allow crown adjustment when timer is paused
+                if !isTimerRunning {
+                    adjustTimerWithCrown(newValue)
+                }
             }
             
             HStack(spacing: 15) {
@@ -480,6 +525,11 @@ struct ContentView: View {
     }
     
     private func startTimer() {
+        // Stop any existing timer first
+        timer?.invalidate()
+        timer = nil
+        
+        // Set up timer values
         totalTime = selectedMinutes * 60 + selectedSeconds
         timeRemaining = totalTime
         progress = 0.0
@@ -488,6 +538,7 @@ struct ContentView: View {
         
         // Set initial crown value to match timer
         crownValue = Double(timeRemaining)
+        
         
         // Donate to Siri Shortcuts
         if #available(iOS 12.0, watchOS 5.0, *) {
@@ -500,21 +551,33 @@ struct ContentView: View {
         // Start workout session to keep app active
         workoutManager.startWaterWorkout()
         
-        
         // Keep screen awake during timer
         WKInterfaceDevice.current().enableWaterLock()
         
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            guard isTimerRunning && timeRemaining > 0 else {
-                if isTimerRunning && timeRemaining <= 0 {
-                    timerCompleted()
+        // Start the countdown timer with a slight delay to ensure all setup is complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.startCountdownTimer()
+        }
+    }
+    
+    private func startCountdownTimer() {
+        timer?.invalidate() // Ensure no duplicate timers
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timerInstance in
+            DispatchQueue.main.async {
+                // Only proceed if timer is still running and time remains
+                guard isTimerRunning && timeRemaining > 0 else {
+                    if isTimerRunning && timeRemaining <= 0 {
+                        timerCompleted()
+                    }
+                    timerInstance.invalidate()
+                    return
                 }
-                return
+                
+                // Decrement time and update progress
+                timeRemaining -= 1
+                progress = Double(totalTime - timeRemaining) / Double(totalTime)
             }
-            
-            timeRemaining -= 1
-            crownValue = Double(timeRemaining)
-            progress = Double(totalTime - timeRemaining) / Double(totalTime)
         }
     }
     
@@ -522,28 +585,17 @@ struct ContentView: View {
         timer?.invalidate()
         timer = nil
         isTimerRunning = false
-        // Update crown value to current time for adjustment
-        crownValue = Double(timeRemaining)
-        
+        // Sync crown value to current time for adjustment
+        DispatchQueue.main.async {
+            self.crownValue = Double(self.timeRemaining)
+        }
     }
     
     private func resumeTimer() {
         guard timeRemaining > 0 else { return }
         
         isTimerRunning = true
-        
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            guard isTimerRunning && timeRemaining > 0 else {
-                if isTimerRunning && timeRemaining <= 0 {
-                    timerCompleted()
-                }
-                return
-            }
-            
-            timeRemaining -= 1
-            crownValue = Double(timeRemaining)
-            progress = Double(totalTime - timeRemaining) / Double(totalTime)
-        }
+        startCountdownTimer()
     }
     
     private func resetTimer() {
@@ -575,8 +627,6 @@ struct ContentView: View {
         if workoutManager.isWorkoutActive {
             workoutManager.endWorkout()
         }
-        
-        print("Reset to new session")
     }
     
     private func adjustTimerWithCrown(_ newValue: Double) {
