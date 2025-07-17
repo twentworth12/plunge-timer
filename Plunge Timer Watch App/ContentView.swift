@@ -8,24 +8,40 @@
 import SwiftUI
 import WatchKit
 import HealthKit
+import CoreMotion
+import Intents
+import ClockKit
 
-class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate {
+class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate, CMWaterSubmersionManagerDelegate {
     @Published var isWorkoutActive = false
+    @Published var currentHeartRate: Double = 0.0
     private var workoutSession: HKWorkoutSession?
     private var healthStore = HKHealthStore()
     private var onWorkoutStart: (() -> Void)?
+    private var waterSubmersionManager: CMWaterSubmersionManager?
+    private var builder: HKLiveWorkoutBuilder?
+    private var startTime: Date?
     
     func setupWorkoutSession(onStart: @escaping () -> Void) {
         self.onWorkoutStart = onStart
         
         let typesToWrite: Set = [HKObjectType.workoutType()]
-        let typesToRead: Set = [HKObjectType.workoutType()]
+        let typesToRead: Set = [
+            HKObjectType.workoutType(),
+            HKObjectType.quantityType(forIdentifier: .heartRate)!
+        ]
         
         healthStore.requestAuthorization(toShare: typesToWrite, read: typesToRead) { success, error in
             if success {
                 print("HealthKit authorization granted")
             }
         }
+    }
+    
+    func setupWaterDetection() {
+        waterSubmersionManager = CMWaterSubmersionManager()
+        waterSubmersionManager?.delegate = self
+        print("Water detection enabled")
     }
     
     func startWaterWorkout() {
@@ -36,7 +52,21 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate {
         do {
             workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
             workoutSession?.delegate = self
-            workoutSession?.startActivity(with: Date())
+            
+            builder = workoutSession?.associatedWorkoutBuilder()
+            builder?.delegate = self
+            builder?.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: configuration)
+            
+            startTime = Date()
+            workoutSession?.startActivity(with: startTime!)
+            builder?.beginCollection(withStart: startTime!) { success, error in
+                if success {
+                    print("Workout data collection started")
+                } else {
+                    print("Failed to start workout data collection: \(error?.localizedDescription ?? "Unknown error")")
+                }
+            }
+            
             isWorkoutActive = true
         } catch {
             print("Failed to start workout session: \(error)")
@@ -44,9 +74,45 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate {
     }
     
     func endWorkout() {
+        guard let startTime = startTime else { return }
+        let endTime = Date()
+        
+        builder?.endCollection(withEnd: endTime) { success, error in
+            if success {
+                print("Workout data collection ended")
+                self.builder?.finishWorkout { workout, error in
+                    if let workout = workout {
+                        print("Workout saved successfully: \(workout)")
+                        self.saveWorkoutToHealthKit(workout: workout, startTime: startTime, endTime: endTime)
+                    } else {
+                        print("Failed to finish workout: \(error?.localizedDescription ?? "Unknown error")")
+                    }
+                }
+            } else {
+                print("Failed to end workout data collection: \(error?.localizedDescription ?? "Unknown error")")
+            }
+        }
+        
         workoutSession?.end()
         workoutSession = nil
+        builder = nil
         isWorkoutActive = false
+        self.startTime = nil
+        
+        // Reset heart rate
+        DispatchQueue.main.async {
+            self.currentHeartRate = 0.0
+        }
+    }
+    
+    private func saveWorkoutToHealthKit(workout: HKWorkout, startTime: Date, endTime: Date) {
+        healthStore.save(workout) { success, error in
+            if success {
+                print("Cold plunge workout saved to HealthKit")
+            } else {
+                print("Failed to save workout to HealthKit: \(error?.localizedDescription ?? "Unknown error")")
+            }
+        }
     }
     
     // MARK: - HKWorkoutSessionDelegate
@@ -67,6 +133,53 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate {
     
     func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: Error) {
         print("Workout session failed: \(error)")
+    }
+    
+    // MARK: - CMWaterSubmersionManagerDelegate
+    func manager(_ manager: CMWaterSubmersionManager, didUpdate event: CMWaterSubmersionEvent) {
+        DispatchQueue.main.async {
+            switch event.state {
+            case .submerged:
+                print("Water detected - starting timer")
+                self.onWorkoutStart?()
+            case .notSubmerged:
+                print("Water no longer detected")
+            default:
+                break
+            }
+        }
+    }
+    
+    func manager(_ manager: CMWaterSubmersionManager, didUpdate measurement: CMWaterSubmersionMeasurement) {
+        // Handle water submersion measurements if needed
+    }
+    
+    func manager(_ manager: CMWaterSubmersionManager, didUpdate measurement: CMWaterTemperature) {
+        // Handle water temperature measurements if needed
+    }
+    
+    func manager(_ manager: CMWaterSubmersionManager, errorOccurred error: Error) {
+        print("Water detection error: \(error)")
+    }
+    
+    // MARK: - HKLiveWorkoutBuilderDelegate
+    func workoutBuilder(_ workoutBuilder: HKLiveWorkoutBuilder, didCollectDataOf collectedTypes: Set<HKSampleType>) {
+        for type in collectedTypes {
+            guard let quantityType = type as? HKQuantityType else { continue }
+            
+            if quantityType == HKQuantityType.quantityType(forIdentifier: .heartRate) {
+                let statistics = workoutBuilder.statistics(for: quantityType)
+                let heartRateUnit = HKUnit.count().unitDivided(by: .minute())
+                
+                DispatchQueue.main.async {
+                    self.currentHeartRate = statistics?.mostRecentQuantity()?.doubleValue(for: heartRateUnit) ?? 0.0
+                }
+            }
+        }
+    }
+    
+    func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
+        // Handle workout events
     }
 }
 
@@ -109,7 +222,19 @@ struct ContentView: View {
     @State private var totalTime = 0
     @State private var showingCompletion = false
     @State private var autoStartEnabled = true
+    @State private var crownValue: Double = 0.0
+    @State private var isCrownFocused = false
+    @State private var breathingEnabled = true
+    @State private var breathingTimer: Timer?
+    @State private var breathingPhase: BreathingPhase = .inhale
     @StateObject private var workoutManager = WorkoutManager()
+    
+    enum BreathingPhase: String, CaseIterable {
+        case inhale = "Inhale"
+        case hold = "Hold"
+        case exhale = "Exhale"
+        case pause = "Pause"
+    }
     
     var body: some View {
         NavigationView {
@@ -123,6 +248,9 @@ struct ContentView: View {
                 }
             }
             .navigationBarHidden(true)
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("StartPlungeTimer"))) { notification in
+                handleSiriShortcut(notification)
+            }
         }
     }
     
@@ -143,6 +271,11 @@ struct ContentView: View {
                 .toggleStyle(.switch)
                 .tint(.cyan)
             
+            Toggle("Breathing guidance", isOn: $breathingEnabled)
+                .font(.caption2)
+                .toggleStyle(.switch)
+                .tint(.green)
+            
             Button("Start") {
                 startTimer()
             }
@@ -156,15 +289,40 @@ struct ContentView: View {
                 workoutManager.setupWorkoutSession {
                     startTimer()
                 }
+                workoutManager.setupWaterDetection()
             }
         }
     }
     
     private var timerView: some View {
         VStack(spacing: 10) {
-            Text("🧊 Stay Strong!")
-                .font(.caption)
-                .foregroundColor(.cyan)
+            VStack(spacing: 2) {
+                Text("🧊 Stay Strong!")
+                    .font(.caption)
+                    .foregroundColor(.cyan)
+                
+                if isCrownFocused {
+                    Text("👑 Adjust with Digital Crown")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
+                        .opacity(0.8)
+                }
+                
+                if breathingEnabled && isTimerRunning {
+                    Text("🫁 \(breathingPhase.rawValue)")
+                        .font(.caption2)
+                        .foregroundColor(.green)
+                        .fontWeight(.medium)
+                        .animation(.easeInOut(duration: 0.5), value: breathingPhase)
+                }
+                
+                if isTimerRunning && workoutManager.currentHeartRate > 0 {
+                    Text("❤️ \(Int(workoutManager.currentHeartRate)) BPM")
+                        .font(.caption2)
+                        .foregroundColor(.red)
+                        .fontWeight(.medium)
+                }
+            }
             
             ZStack {
                 Circle()
@@ -178,6 +336,15 @@ struct ContentView: View {
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 1), value: progress)
                 
+                // Crown focus indicator
+                if isCrownFocused {
+                    Circle()
+                        .stroke(Color.orange.opacity(0.3), lineWidth: 2)
+                        .frame(width: 110, height: 110)
+                        .scaleEffect(isCrownFocused ? 1.1 : 1.0)
+                        .animation(.easeInOut(duration: 0.3), value: isCrownFocused)
+                }
+                
                 VStack(spacing: 2) {
                     Text(timeString(from: timeRemaining))
                         .font(.title3)
@@ -188,6 +355,13 @@ struct ContentView: View {
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
+            }
+            .focusable(true) { focused in
+                isCrownFocused = focused
+            }
+            .digitalCrownRotation($crownValue, from: 0, through: 600, by: 5, sensitivity: .medium, isContinuous: false, isHapticFeedbackEnabled: true)
+            .onChange(of: crownValue) { oldValue, newValue in
+                adjustTimerWithCrown(newValue)
             }
             
             HStack(spacing: 15) {
@@ -258,14 +432,32 @@ struct ContentView: View {
         showingTimePicker = false
         isTimerRunning = true
         
-        // Enable water lock for cold plunge
-        if WKInterfaceDevice.current().waterResistanceRating == .wr50 {
-            WKInterfaceDevice.current().enableWaterLock()
+        // Set initial crown value to match timer
+        crownValue = Double(timeRemaining)
+        
+        // Donate to Siri Shortcuts
+        if #available(iOS 12.0, watchOS 5.0, *) {
+            ShortcutsProvider.shared.donateQuickStartActivity(
+                duration: totalTime,
+                breathingEnabled: breathingEnabled
+            )
         }
+        
+        // Start workout session to keep app active
+        workoutManager.startWaterWorkout()
+        
+        // Start breathing guidance if enabled
+        if breathingEnabled {
+            startBreathingGuidance()
+        }
+        
+        // Keep screen awake during timer
+        WKInterfaceDevice.current().enableWaterLock()
         
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if timeRemaining > 0 {
                 timeRemaining -= 1
+                crownValue = Double(timeRemaining)
                 progress = Double(totalTime - timeRemaining) / Double(totalTime)
             } else {
                 timerCompleted()
@@ -277,15 +469,27 @@ struct ContentView: View {
         timer?.invalidate()
         timer = nil
         isTimerRunning = false
+        // Update crown value to current time for adjustment
+        crownValue = Double(timeRemaining)
+        
+        // Pause breathing guidance
+        stopBreathingGuidance()
     }
     
     private func resumeTimer() {
         guard timeRemaining > 0 else { return }
         
         isTimerRunning = true
+        
+        // Resume breathing guidance if enabled
+        if breathingEnabled {
+            startBreathingGuidance()
+        }
+        
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if timeRemaining > 0 {
                 timeRemaining -= 1
+                crownValue = Double(timeRemaining)
                 progress = Double(totalTime - timeRemaining) / Double(totalTime)
             } else {
                 timerCompleted()
@@ -301,6 +505,50 @@ struct ContentView: View {
         showingCompletion = false
         progress = 0.0
         timeRemaining = 0
+        crownValue = 0.0
+        
+        // Stop breathing guidance
+        stopBreathingGuidance()
+    }
+    
+    private func adjustTimerWithCrown(_ newValue: Double) {
+        // Only allow adjustment when timer is paused for safety
+        guard !isTimerRunning else { return }
+        
+        let newTimeRemaining = max(0, Int(newValue))
+        
+        // Update timer values
+        timeRemaining = newTimeRemaining
+        totalTime = max(totalTime, newTimeRemaining) // Ensure totalTime is never less than remaining
+        
+        // Recalculate progress
+        if totalTime > 0 {
+            progress = Double(totalTime - timeRemaining) / Double(totalTime)
+        } else {
+            progress = 0.0
+        }
+        
+        // Provide haptic feedback for significant changes
+        if abs(Double(timeRemaining) - newValue) > 5 {
+            WKInterfaceDevice.current().play(.click)
+        }
+    }
+    
+    // MARK: - Siri Shortcuts
+    private func handleSiriShortcut(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let duration = userInfo["duration"] as? Int,
+              let enableBreathing = userInfo["enableBreathing"] as? Bool else { return }
+        
+        // Set timer values from Siri command
+        selectedMinutes = duration / 60
+        selectedSeconds = duration % 60
+        breathingEnabled = enableBreathing
+        
+        // Start the timer automatically
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            startTimer()
+        }
     }
     
     private func timerCompleted() {
@@ -309,11 +557,20 @@ struct ContentView: View {
         isTimerRunning = false
         progress = 1.0
         
+        // Stop breathing guidance
+        stopBreathingGuidance()
+        
         // End workout session if running
         workoutManager.endWorkout()
         
         // Haptic feedback
         WKInterfaceDevice.current().play(.success)
+        
+        // Update complications
+        let server = CLKComplicationServer.sharedInstance()
+        server.activeComplications?.forEach { complication in
+            server.reloadTimeline(for: complication)
+        }
         
         // Show completion celebration
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -325,6 +582,37 @@ struct ContentView: View {
         let minutes = seconds / 60
         let remainingSeconds = seconds % 60
         return String(format: "%d:%02d", minutes, remainingSeconds)
+    }
+    
+    // MARK: - Breathing Guidance
+    private func startBreathingGuidance() {
+        breathingPhase = .inhale
+        breathingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            advanceBreathingPhase()
+        }
+    }
+    
+    private func stopBreathingGuidance() {
+        breathingTimer?.invalidate()
+        breathingTimer = nil
+    }
+    
+    private func advanceBreathingPhase() {
+        let currentIndex = BreathingPhase.allCases.firstIndex(of: breathingPhase) ?? 0
+        let nextIndex = (currentIndex + 1) % BreathingPhase.allCases.count
+        breathingPhase = BreathingPhase.allCases[nextIndex]
+        
+        // Generate haptic feedback based on breathing phase
+        switch breathingPhase {
+        case .inhale:
+            WKInterfaceDevice.current().play(.start)
+        case .hold:
+            WKInterfaceDevice.current().play(.directionUp)
+        case .exhale:
+            WKInterfaceDevice.current().play(.directionDown)
+        case .pause:
+            WKInterfaceDevice.current().play(.click)
+        }
     }
 }
 
