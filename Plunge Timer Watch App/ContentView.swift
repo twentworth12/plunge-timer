@@ -223,7 +223,7 @@ struct ContentView: View {
     @State private var showingCompletion = false
     @State private var autoStartEnabled = true
     @State private var crownValue: Double = 0.0
-    @State private var isCrownFocused = false
+    @FocusState private var isCrownFocused: Bool
     @State private var breathingEnabled = true
     @State private var breathingTimer: Timer?
     @State private var breathingPhase: BreathingPhase = .inhale
@@ -359,9 +359,7 @@ struct ContentView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .focusable(true) { focused in
-                isCrownFocused = focused
-            }
+            .focused($isCrownFocused)
             .digitalCrownRotation($crownValue, from: 0, through: 600, by: 5, sensitivity: .medium, isContinuous: false, isHapticFeedbackEnabled: true)
             .onChange(of: crownValue) { oldValue, newValue in
                 adjustTimerWithCrown(newValue)
