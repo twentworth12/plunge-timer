@@ -6,5 +6,7 @@
 	<true/>
 	<key>com.apple.developer.siri</key>
 	<true/>
+	<key>com.apple.developer.watchkit.extended-runtime</key>
+	<true/>
 </dict>
 </plist>

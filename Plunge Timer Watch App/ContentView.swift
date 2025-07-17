@@ -92,7 +92,7 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
         extendedRuntimeSession = WKExtendedRuntimeSession()
         extendedRuntimeSession?.delegate = self
         extendedRuntimeSession?.start()
-        print("Extended runtime session started")
+        print("Extended runtime session start requested")
     }
     
     private func stopExtendedRuntimeSession() {
@@ -238,7 +238,7 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     }
     
     func extendedRuntimeSession(_ extendedRuntimeSession: WKExtendedRuntimeSession, didInvalidateWith reason: WKExtendedRuntimeSessionInvalidationReason, error: Error?) {
-        print("Extended runtime session invalidated with reason: \(reason)")
+        print("Extended runtime session invalidated with reason: \(reason.rawValue)")
         if let error = error {
             print("Extended runtime session error: \(error.localizedDescription)")
         }
