@@ -433,9 +433,7 @@ struct ContentView: View {
             }
             
             Button("New Session") {
-                showingCompletion = false
-                showingTimePicker = true
-                progress = 0.0
+                resetToNewSession()
             }
             .buttonStyle(.borderedProminent)
             .tint(.cyan)
@@ -469,13 +467,16 @@ struct ContentView: View {
         WKInterfaceDevice.current().enableWaterLock()
         
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-                crownValue = Double(timeRemaining)
-                progress = Double(totalTime - timeRemaining) / Double(totalTime)
-            } else {
-                timerCompleted()
+            guard isTimerRunning && timeRemaining > 0 else {
+                if isTimerRunning && timeRemaining <= 0 {
+                    timerCompleted()
+                }
+                return
             }
+            
+            timeRemaining -= 1
+            crownValue = Double(timeRemaining)
+            progress = Double(totalTime - timeRemaining) / Double(totalTime)
         }
     }
     
@@ -493,15 +494,17 @@ struct ContentView: View {
         
         isTimerRunning = true
         
-        
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-                crownValue = Double(timeRemaining)
-                progress = Double(totalTime - timeRemaining) / Double(totalTime)
-            } else {
-                timerCompleted()
+            guard isTimerRunning && timeRemaining > 0 else {
+                if isTimerRunning && timeRemaining <= 0 {
+                    timerCompleted()
+                }
+                return
             }
+            
+            timeRemaining -= 1
+            crownValue = Double(timeRemaining)
+            progress = Double(totalTime - timeRemaining) / Double(totalTime)
         }
     }
     
@@ -514,6 +517,28 @@ struct ContentView: View {
         progress = 0.0
         timeRemaining = 0
         crownValue = 0.0
+    }
+    
+    private func resetToNewSession() {
+        // Ensure timer is completely stopped
+        timer?.invalidate()
+        timer = nil
+        
+        // Reset all state variables
+        isTimerRunning = false
+        showingCompletion = false
+        showingTimePicker = true
+        progress = 0.0
+        timeRemaining = 0
+        totalTime = 0
+        crownValue = 0.0
+        
+        // Ensure workout is ended
+        if workoutManager.isWorkoutActive {
+            workoutManager.endWorkout()
+        }
+        
+        print("Reset to new session")
     }
     
     private func adjustTimerWithCrown(_ newValue: Double) {
@@ -555,15 +580,19 @@ struct ContentView: View {
     }
     
     private func timerCompleted() {
+        // Prevent multiple completion triggers
+        guard isTimerRunning else { return }
+        
         timer?.invalidate()
         timer = nil
         isTimerRunning = false
         progress = 1.0
+        timeRemaining = 0
         
         // End workout session if running
         workoutManager.endWorkout()
         
-        // Haptic feedback
+        // Single haptic feedback
         WKInterfaceDevice.current().play(.success)
         
         // Update complications
@@ -572,10 +601,8 @@ struct ContentView: View {
             server.reloadTimeline(for: complication)
         }
         
-        // Show completion celebration
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            showingCompletion = true
-        }
+        // Show completion celebration immediately
+        showingCompletion = true
     }
     
     private func timeString(from seconds: Int) -> String {
