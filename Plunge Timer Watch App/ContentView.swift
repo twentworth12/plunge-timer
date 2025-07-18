@@ -12,6 +12,46 @@ import CoreMotion
 import Intents
 import ClockKit
 
+enum TherapyMode: String, CaseIterable {
+    case coldPlunge = "cold"
+    case sauna = "sauna"
+    
+    var emoji: String {
+        switch self {
+        case .coldPlunge: return "❄️"
+        case .sauna: return "🔥"
+        }
+    }
+    
+    var name: String {
+        switch self {
+        case .coldPlunge: return "Cold Plunge"
+        case .sauna: return "Sauna"
+        }
+    }
+    
+    var workoutType: HKWorkoutActivityType {
+        switch self {
+        case .coldPlunge: return .swimming
+        case .sauna: return .other
+        }
+    }
+    
+    var encouragementText: String {
+        switch self {
+        case .coldPlunge: return "🧊 Stay Strong!"
+        case .sauna: return "🌡️ Embrace the Heat!"
+        }
+    }
+    
+    var buttonColor: Color {
+        switch self {
+        case .coldPlunge: return .cyan
+        case .sauna: return .orange
+        }
+    }
+}
+
 class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate, CMWaterSubmersionManagerDelegate, WKExtendedRuntimeSessionDelegate {
     @Published var isWorkoutActive = false
     @Published var currentHeartRate: Double = 0.0
@@ -42,27 +82,71 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     
     func setupWaterDetection() {
         // Water detection requires Apple Watch Ultra with watchOS 9.0+
-        // For now, gracefully handle unavailability
         print("Water detection checking availability...")
         
-        // Default to unavailable for broader compatibility
-        DispatchQueue.main.async {
-            self.isWaterDetectionAvailable = false
+        // Check if CMWaterSubmersionManager is available
+        if #available(watchOS 9.0, *) {
+            // Initialize water submersion manager
+            let manager = CMWaterSubmersionManager()
+            manager.delegate = self
+            self.waterSubmersionManager = manager
+            
+            // Check authorization status
+            let authStatus = CMWaterSubmersionManager.authorizationStatus
+            print("Water detection authorization status: \(authStatus.rawValue)")
+            
+            switch authStatus {
+            case .authorized:
+                print("✅ Water detection authorized and available")
+                DispatchQueue.main.async {
+                    self.isWaterDetectionAvailable = true
+                }
+            case .notDetermined:
+                print("⚠️ Water detection authorization not determined, requesting...")
+                // Authorization will be handled automatically when manager is used
+                DispatchQueue.main.async {
+                    self.isWaterDetectionAvailable = true
+                }
+            case .denied:
+                print("❌ Water detection authorization denied")
+                DispatchQueue.main.async {
+                    self.isWaterDetectionAvailable = false
+                }
+            case .restricted:
+                print("❌ Water detection authorization restricted")
+                DispatchQueue.main.async {
+                    self.isWaterDetectionAvailable = false
+                }
+            @unknown default:
+                print("❓ Unknown water detection authorization status")
+                DispatchQueue.main.async {
+                    self.isWaterDetectionAvailable = false
+                }
+            }
+        } else {
+            print("❌ Water detection requires watchOS 9.0 or later")
+            DispatchQueue.main.async {
+                self.isWaterDetectionAvailable = false
+            }
         }
-        
-        // Note: Water detection will show error 109 (not available) on 
-        // simulator and non-Ultra Apple Watch devices
-        print("Water detection unavailable (requires Apple Watch Ultra)")
     }
     
-    func startWaterWorkout() {
-        // Start extended runtime session first (may not work in simulator)
+    func startWorkout(for mode: TherapyMode) {
+        // Prevent multiple workout sessions
+        guard !isWorkoutActive else {
+            print("ℹ️ Workout already active, skipping duplicate start")
+            return
+        }
+        
+        // Try to start extended runtime session (optional for development)
         startExtendedRuntimeSession()
         
         let configuration = HKWorkoutConfiguration()
-        configuration.activityType = .swimming
+        configuration.activityType = mode.workoutType
         configuration.locationType = .outdoor
-        configuration.swimmingLocationType = .openWater
+        if mode == .coldPlunge {
+            configuration.swimmingLocationType = .openWater
+        }
         
         do {
             // HKWorkoutSession provides background execution even if extended runtime fails
@@ -84,7 +168,7 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
             }
             
             isWorkoutActive = true
-            print("🏊‍♂️ Swimming workout session active")
+            print("🏋️‍♂️ \(mode.name) workout session active")
         } catch {
             print("❌ Failed to start workout session: \(error)")
         }
@@ -93,21 +177,24 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     private func startExtendedRuntimeSession() {
         // Don't start if we already have an active session
         guard extendedRuntimeSession == nil else {
-            print("⚠️ Extended runtime session already exists")
+            print("ℹ️ Extended runtime session already exists")
             return
         }
         
-        // Extended runtime sessions may not be available in simulator or development builds
+        // Extended runtime sessions require special entitlements and may not work in development
+        print("ℹ️ Extended runtime session disabled for development compatibility")
+        print("🏊‍♂️ Using HealthKit workout session for background execution")
+        
+        // Note: To enable extended runtime sessions in production:
+        // 1. Add com.apple.developer.watchkit.extended-runtime entitlement
+        // 2. Request special approval from Apple
+        // 3. Uncomment the code below
+        
+        /*
         extendedRuntimeSession = WKExtendedRuntimeSession()
         extendedRuntimeSession?.delegate = self
-        
-        // Check if session is in a valid state before starting
-        if let session = extendedRuntimeSession {
-            print("🔄 Attempting to start extended runtime session...")
-            session.start()
-        } else {
-            print("❌ Failed to create extended runtime session")
-        }
+        extendedRuntimeSession?.start()
+        */
     }
     
     private func stopExtendedRuntimeSession() {
@@ -160,7 +247,7 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     private func saveWorkoutToHealthKit(workout: HKWorkout, startTime: Date, endTime: Date) {
         healthStore.save(workout) { success, error in
             if success {
-                print("Cold plunge workout saved to HealthKit")
+                print("Therapy workout saved to HealthKit")
             } else {
                 print("Failed to save workout to HealthKit: \(error?.localizedDescription ?? "Unknown error")")
             }
@@ -192,11 +279,13 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
         DispatchQueue.main.async {
             switch event.state {
             case .submerged:
-                print("Water detected - starting timer")
+                print("🌊 Water detected - starting timer automatically")
+                WKInterfaceDevice.current().play(.success)
                 self.onWorkoutStart?()
             case .notSubmerged:
-                print("Water no longer detected")
+                print("🏖️ Water no longer detected")
             default:
+                print("🌊 Water detection state: \(event.state.rawValue)")
                 break
             }
         }
@@ -286,14 +375,14 @@ struct TimePickers: View {
     private let seconds = Array(0...59)
     
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 2) {
             Picker("Minutes", selection: $selectedMinutes) {
                 ForEach(minutes, id: \.self) { minute in
                     Text("\(minute)m").tag(minute)
                 }
             }
             .pickerStyle(WheelPickerStyle())
-            .frame(width: 50)
+            .frame(width: 70)
             
             Picker("Seconds", selection: $selectedSeconds) {
                 ForEach(seconds, id: \.self) { second in
@@ -301,7 +390,7 @@ struct TimePickers: View {
                 }
             }
             .pickerStyle(WheelPickerStyle())
-            .frame(width: 50)
+            .frame(width: 70)
         }
     }
 }
@@ -312,12 +401,14 @@ struct ContentView: View {
     @State private var isTimerRunning = false
     @State private var timeRemaining = 0
     @State private var timer: Timer?
-    @State private var showingTimePicker = true
+    @State private var showingModeSelection = true
+    @State private var showingTimePicker = false
     @State private var progress: Double = 0.0
     @State private var totalTime = 0
     @State private var showingCompletion = false
-    @State private var autoStartEnabled = true
+    @State private var autoStartEnabled = false
     @State private var crownValue: Double = 0.0
+    @State private var selectedMode: TherapyMode = .coldPlunge
     @FocusState private var isCrownFocused: Bool
     @StateObject private var workoutManager = WorkoutManager()
     
@@ -327,6 +418,8 @@ struct ContentView: View {
             VStack(spacing: 10) {
                 if showingCompletion {
                     completionView
+                } else if showingModeSelection {
+                    modeSelectionView
                 } else if showingTimePicker {
                     timePickerView
                 } else {
@@ -340,10 +433,46 @@ struct ContentView: View {
         }
     }
     
+    private var modeSelectionView: some View {
+        VStack(spacing: 8) {
+            Text("Choose Therapy")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            VStack(spacing: 8) {
+                ForEach(TherapyMode.allCases, id: \.self) { mode in
+                    Button(action: {
+                        selectedMode = mode
+                        showingModeSelection = false
+                        showingTimePicker = true
+                    }) {
+                        HStack {
+                            Text(mode.emoji)
+                                .font(.title2)
+                            Text(mode.name)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(mode.buttonColor)
+                }
+            }
+        }
+    }
+    
     private var timePickerView: some View {
         VStack(spacing: 6) {
-            Text("❄️")
-                .font(.title)
+            Button(action: {
+                showingModeSelection = true
+                showingTimePicker = false
+            }) {
+                Text(selectedMode.emoji)
+                    .font(.title)
+            }
+            .buttonStyle(.plain)
             
             Text("Set Goal")
                 .font(.caption2)
@@ -352,19 +481,30 @@ struct ContentView: View {
             TimePickers(selectedMinutes: $selectedMinutes, selectedSeconds: $selectedSeconds)
                 .frame(height: 70)
             
-            if workoutManager.isWaterDetectionAvailable {
-                Toggle("Auto-start on water entry", isOn: $autoStartEnabled)
-                    .font(.caption2)
-                    .toggleStyle(.switch)
-                    .tint(.cyan)
-            } else {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle")
-                        .foregroundColor(.orange)
-                        .font(.caption2)
-                    Text("Water detection unavailable")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+            if selectedMode == .coldPlunge {
+                if workoutManager.isWaterDetectionAvailable {
+                    VStack(spacing: 4) {
+                        Toggle("Auto-start on water entry", isOn: $autoStartEnabled)
+                            .font(.caption2)
+                            .toggleStyle(.switch)
+                            .tint(.cyan)
+                        
+                        if autoStartEnabled {
+                            Text("🏊‍♂️ Ready for water detection")
+                                .font(.caption2)
+                                .foregroundColor(.cyan)
+                                .opacity(0.8)
+                        }
+                    }
+                } else {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundColor(.orange)
+                            .font(.caption2)
+                        Text("Water detection unavailable")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             
@@ -373,7 +513,7 @@ struct ContentView: View {
                 startTimer()
             }
             .buttonStyle(.borderedProminent)
-            .tint(.cyan)
+            .tint(selectedMode.buttonColor)
             .font(.caption)
             .disabled(selectedMinutes == 0 && selectedSeconds == 0)
         }
@@ -381,8 +521,16 @@ struct ContentView: View {
             // Always check water detection availability first
             workoutManager.setupWaterDetection()
             
-            // Setup workout session for auto-start if enabled
-            if autoStartEnabled {
+            // Setup workout session for auto-start if enabled (only for cold plunge)
+            if autoStartEnabled && selectedMode == .coldPlunge {
+                workoutManager.setupWorkoutSession {
+                    startTimer()
+                }
+            }
+        }
+        .onChange(of: autoStartEnabled) { oldValue, newValue in
+            // Setup or tear down auto-start functionality when toggle changes
+            if newValue && selectedMode == .coldPlunge && workoutManager.isWaterDetectionAvailable {
                 workoutManager.setupWorkoutSession {
                     startTimer()
                 }
@@ -391,37 +539,40 @@ struct ContentView: View {
     }
     
     private var timerView: some View {
-        VStack(spacing: 10) {
-            VStack(spacing: 2) {
-                Text("🧊 Stay Strong!")
-                    .font(.caption)
-                    .foregroundColor(.cyan)
+        VStack(spacing: 6) {
+            // Condensed header with essential info only
+            VStack(spacing: 1) {
+                Text(selectedMode.encouragementText)
+                    .font(.caption2)
+                    .foregroundColor(selectedMode.buttonColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 
                 if isCrownFocused && !isTimerRunning {
-                    Text("👑 Adjust with Digital Crown")
+                    Text("👑 Digital Crown")
                         .font(.caption2)
                         .foregroundColor(.orange)
                         .opacity(0.8)
-                }
-                
-                
-                if isTimerRunning && workoutManager.currentHeartRate > 0 {
+                        .lineLimit(1)
+                } else if isTimerRunning && workoutManager.currentHeartRate > 0 {
                     Text("❤️ \(Int(workoutManager.currentHeartRate)) BPM")
                         .font(.caption2)
                         .foregroundColor(.red)
                         .fontWeight(.medium)
+                        .lineLimit(1)
                 }
             }
+            .frame(maxHeight: 32) // Limit header height
             
             ZStack {
                 Circle()
-                    .stroke(Color.cyan.opacity(0.3), lineWidth: 6)
-                    .frame(width: 100, height: 100)
+                    .stroke(selectedMode.buttonColor.opacity(0.3), lineWidth: 5)
+                    .frame(width: 90, height: 90)
                 
                 Circle()
                     .trim(from: 0, to: progress)
-                    .stroke(Color.cyan, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                    .frame(width: 100, height: 100)
+                    .stroke(selectedMode.buttonColor, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                    .frame(width: 90, height: 90)
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 1), value: progress)
                 
@@ -429,17 +580,17 @@ struct ContentView: View {
                 if isCrownFocused && !isTimerRunning {
                     Circle()
                         .stroke(Color.orange.opacity(0.3), lineWidth: 2)
-                        .frame(width: 110, height: 110)
+                        .frame(width: 100, height: 100)
                         .scaleEffect(isCrownFocused ? 1.1 : 1.0)
                         .animation(.easeInOut(duration: 0.3), value: isCrownFocused)
                 }
                 
-                VStack(spacing: 1) {
+                VStack(spacing: 0) {
                     Text(timeString(from: timeRemaining))
-                        .font(.title2)
+                        .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
-                        .minimumScaleFactor(0.6)
+                        .minimumScaleFactor(0.7)
                         .lineLimit(1)
                     
                     Text("left")
@@ -465,7 +616,7 @@ struct ContentView: View {
                 }
             }
             
-            HStack(spacing: 15) {
+            HStack(spacing: 12) {
                 Button(action: {
                     if isTimerRunning {
                         pauseTimer()
@@ -484,7 +635,7 @@ struct ContentView: View {
                         .font(.title3)
                 }
                 .buttonStyle(.bordered)
-                .tint(.cyan)
+                .tint(selectedMode.buttonColor)
             }
         }
     }
@@ -496,7 +647,7 @@ struct ContentView: View {
             
             Text("Champion!")
                 .font(.headline)
-                .foregroundColor(.cyan)
+                .foregroundColor(selectedMode.buttonColor)
                 .multilineTextAlignment(.center)
             
             Text("You did it!")
@@ -512,14 +663,14 @@ struct ContentView: View {
                 Text(timeString(from: totalTime))
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.cyan)
+                    .foregroundColor(selectedMode.buttonColor)
             }
             
             Button("New Session") {
                 resetToNewSession()
             }
             .buttonStyle(.borderedProminent)
-            .tint(.cyan)
+            .tint(selectedMode.buttonColor)
             .font(.caption)
         }
     }
@@ -549,10 +700,12 @@ struct ContentView: View {
         }
         
         // Start workout session to keep app active
-        workoutManager.startWaterWorkout()
+        workoutManager.startWorkout(for: selectedMode)
         
-        // Keep screen awake during timer
-        WKInterfaceDevice.current().enableWaterLock()
+        // Enable water lock only for cold plunge sessions
+        if selectedMode == .coldPlunge {
+            WKInterfaceDevice.current().enableWaterLock()
+        }
         
         // Start the countdown timer with a slight delay to ensure all setup is complete
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -602,7 +755,8 @@ struct ContentView: View {
         timer?.invalidate()
         timer = nil
         isTimerRunning = false
-        showingTimePicker = true
+        showingModeSelection = true
+        showingTimePicker = false
         showingCompletion = false
         progress = 0.0
         timeRemaining = 0
@@ -617,7 +771,8 @@ struct ContentView: View {
         // Reset all state variables
         isTimerRunning = false
         showingCompletion = false
-        showingTimePicker = true
+        showingModeSelection = true
+        showingTimePicker = false
         progress = 0.0
         timeRemaining = 0
         totalTime = 0
