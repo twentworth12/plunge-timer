@@ -6,7 +6,5 @@
 	<true/>
 	<key>com.apple.developer.siri</key>
 	<true/>
-	<key>com.apple.developer.motion.water-submersion</key>
-	<true/>
 </dict>
 </plist>

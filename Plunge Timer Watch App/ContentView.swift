@@ -81,44 +81,50 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
     }
     
     func setupWaterDetection() {
-        // Water detection requires Apple Watch Ultra with watchOS 9.0+
+        // Water detection requires Apple Watch Ultra with watchOS 9.0+ and special entitlements
         print("Water detection checking availability...")
         
         // Check if CMWaterSubmersionManager is available
         if #available(watchOS 9.0, *) {
-            // Initialize water submersion manager
-            let manager = CMWaterSubmersionManager()
-            manager.delegate = self
-            self.waterSubmersionManager = manager
-            
-            // Check authorization status
-            let authStatus = CMWaterSubmersionManager.authorizationStatus
-            print("Water detection authorization status: \(authStatus.rawValue)")
-            
-            switch authStatus {
-            case .authorized:
-                print("✅ Water detection authorized and available")
-                DispatchQueue.main.async {
-                    self.isWaterDetectionAvailable = true
+            do {
+                // Try to initialize water submersion manager
+                let manager = CMWaterSubmersionManager()
+                manager.delegate = self
+                self.waterSubmersionManager = manager
+                
+                // Check authorization status
+                let authStatus = CMWaterSubmersionManager.authorizationStatus
+                print("Water detection authorization status: \(authStatus.rawValue)")
+                
+                switch authStatus {
+                case .authorized:
+                    print("✅ Water detection authorized and available")
+                    DispatchQueue.main.async {
+                        self.isWaterDetectionAvailable = true
+                    }
+                case .notDetermined:
+                    print("⚠️ Water detection authorization not determined")
+                    DispatchQueue.main.async {
+                        self.isWaterDetectionAvailable = true
+                    }
+                case .denied:
+                    print("❌ Water detection authorization denied")
+                    DispatchQueue.main.async {
+                        self.isWaterDetectionAvailable = false
+                    }
+                case .restricted:
+                    print("❌ Water detection authorization restricted")
+                    DispatchQueue.main.async {
+                        self.isWaterDetectionAvailable = false
+                    }
+                @unknown default:
+                    print("❓ Unknown water detection authorization status")
+                    DispatchQueue.main.async {
+                        self.isWaterDetectionAvailable = false
+                    }
                 }
-            case .notDetermined:
-                print("⚠️ Water detection authorization not determined, requesting...")
-                // Authorization will be handled automatically when manager is used
-                DispatchQueue.main.async {
-                    self.isWaterDetectionAvailable = true
-                }
-            case .denied:
-                print("❌ Water detection authorization denied")
-                DispatchQueue.main.async {
-                    self.isWaterDetectionAvailable = false
-                }
-            case .restricted:
-                print("❌ Water detection authorization restricted")
-                DispatchQueue.main.async {
-                    self.isWaterDetectionAvailable = false
-                }
-            @unknown default:
-                print("❓ Unknown water detection authorization status")
+            } catch {
+                print("❌ Water detection initialization failed: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     self.isWaterDetectionAvailable = false
                 }
@@ -303,17 +309,25 @@ class WorkoutManager: NSObject, ObservableObject, HKWorkoutSessionDelegate, HKLi
         let cmError = error as NSError
         switch cmError.code {
         case 109: // Feature not available
-            print("Water detection not available on this device (requires Apple Watch Ultra)")
+            print("❌ Water detection not available on this device (requires Apple Watch Ultra)")
             DispatchQueue.main.async {
                 self.isWaterDetectionAvailable = false
             }
         case 103: // Not authorized
-            print("Water detection not authorized")
+            print("❌ Water detection not authorized")
+            DispatchQueue.main.async {
+                self.isWaterDetectionAvailable = false
+            }
+        case 104: // Not entitled
+            print("❌ Water detection not entitled (requires special Apple approval)")
             DispatchQueue.main.async {
                 self.isWaterDetectionAvailable = false
             }
         default:
-            print("Water detection error: \(error)")
+            print("❌ Water detection error (\(cmError.code)): \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                self.isWaterDetectionAvailable = false
+            }
         }
     }
     
@@ -497,13 +511,19 @@ struct ContentView: View {
                         }
                     }
                 } else {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle")
-                            .foregroundColor(.orange)
-                            .font(.caption2)
-                        Text("Water detection unavailable")
+                    VStack(spacing: 2) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundColor(.orange)
+                                .font(.caption2)
+                            Text("Auto-start unavailable")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                        Text("Requires Apple Watch Ultra")
                             .font(.caption2)
                             .foregroundColor(.secondary)
+                            .opacity(0.7)
                     }
                 }
             }
